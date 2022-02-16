@@ -17,6 +17,8 @@ namespace DAO.Context
         protected override void OnConfiguring(DbContextOptionsBuilder builder)
         {
             builder.UseSqlServer(@"Server=(LocalDb)\MSSQLLocalDB;Database=CrudReact;Integrated Security=True");
+            builder.EnableSensitiveDataLogging();
+            builder.EnableDetailedErrors();
         }
 
     }

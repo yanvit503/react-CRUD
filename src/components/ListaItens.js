@@ -3,16 +3,9 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import ItemLista from './ItemLista';
 import Swal from 'sweetalert2';
 
-const itemTeste = {
-    id: 1,
-    nome: 'Yan Vitor',
-    idade: 21,
-    profissao: 'Dev Fullstack'
-}
-
 function ListaItens(props) {
 
-    const [itens, setItens] = useState([itemTeste]);
+    const [itens, setItens] = useState([]);
     const item = props.item;
 
     async function HandleAdicionar() {
@@ -22,6 +15,7 @@ function ListaItens(props) {
             confirmButtonText: 'Adicionar',
             cancelButtonText: 'Cancelar',
             reverseButtons: true,
+            showLoaderOnConfirm: true,
             html:
                 '<input id="adicionarNome" placeholder="Nome" class="swal2-input">' +
 
@@ -29,15 +23,30 @@ function ListaItens(props) {
 
                 '<input id="adicionarProfissao" placeholder="Profissão" class="swal2-input">'
             ,
-            preConfirm: () => {
-                return {
-                    id: Math.random(),
+            preConfirm: async () => {
+                var pessoa = {
                     nome: document.getElementById('adicionarNome').value,
                     idade: document.getElementById('adicionarIdade').value,
                     profissao: document.getElementById('adicionarProfissao').value
                 }
+
+                return await fetch('https://localhost:7186/Pessoa', {
+                    method: 'POST',
+                    headers: new Headers({ 'content-type': 'application/json' }),
+                    body: JSON.stringify(pessoa)
+                })
+                    .then(response => {
+                        if (!response.ok)
+                            throw new Error()
+
+                        return pessoa
+                    })
+                    .catch(function (error) {
+                        Swal.showValidationMessage("Ocorreu um erro")
+                    });
             }
-        }).then((result) => {
+        }).then(result => {
+            console.log("result :  " + JSON.stringify(result))
             if (result.isConfirmed)
                 setItens([...itens, result.value]);
         })
@@ -60,13 +69,32 @@ function ListaItens(props) {
         setItens(arrayFiltrado)
     }
 
+    useEffect(() => {
+        fetch('https://localhost:7186/pessoa', { method: 'GET' })
+            .then(response => response.json())
+            .then(data => {
+                setItens(data)
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('tabela').className = 'table';
+            })
+            .catch(function (error) {
+                console.log(error.message);
+            });
+    }, [])
+
     return (
         <div>
             <h1>Lista de pessoas</h1>
             <button className='btn btn-success float-end' onClick={HandleAdicionar} >Adicionar</button>
-            <table className='table'>
+
+            <div id='loading' className='text-center w-100'>
+                <div id='loading' className="mt-5 spinner-border text-primary" >
+                </div>
+            </div>
+
+            <table id='tabela' className='table d-none'>
                 <thead>
-                    <tr key={1}>
+                    <tr>
                         <th />
                         <th scope="col" className='d-none'>id</th>
                         <th scope="col">Nome</th>
@@ -84,7 +112,7 @@ function ListaItens(props) {
                     }
                 </tbody>
             </table>
-        </div>
+        </div >
     )
 }
 

@@ -14,6 +14,24 @@ function ItemLista(props) {
             confirmButtonText: 'Excluir',
             cancelButtonText: 'Cancelar',
             reverseButtons: true,
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
+
+                return await fetch('https://localhost:7186/Pessoa', {
+                    method: 'DELETE',
+                    headers: new Headers({ 'content-type': 'application/json' }),
+                    body: JSON.stringify(item)
+                })
+                    .then(response => {
+                        if (!response.ok)
+                            throw new Error()
+
+                        return item
+                    })
+                    .catch(function (error) {
+                        Swal.showValidationMessage("Ocorreu um erro")
+                    });
+            }
         }).then((result) => {
             if (result.isConfirmed)
                 handleExcluir(item)
@@ -27,6 +45,7 @@ function ItemLista(props) {
             confirmButtonText: 'Salvar',
             cancelButtonText: 'Cancelar',
             reverseButtons: true,
+            showLoaderOnConfirm: true,
             html:
                 `<input id="editorNome" placeholder="Nome" value="${item.nome}" class="swal2-input">` +
 
@@ -34,13 +53,29 @@ function ItemLista(props) {
 
                 `<input id="editorProfissao" placeholder="Profissão" value="${item.profissao}" class="swal2-input">`
             ,
-            preConfirm: () => {
-                return {
+            preConfirm: async () => {
+                var pessoa = {
                     id: item.id,
                     nome: document.getElementById('editorNome').value,
                     idade: document.getElementById('editorIdade').value,
                     profissao: document.getElementById('editorProfissao').value
                 }
+
+                return await fetch('https://localhost:7186/Pessoa', {
+                    method: 'PUT',
+                    headers: new Headers({ 'content-type': 'application/json' }),
+                    body: JSON.stringify(pessoa)
+                })
+                    .then(response => {
+                        if (!response.ok)
+                            throw new Error()
+
+                        return pessoa
+                    })
+                    .catch(function (error) {
+                        Swal.showValidationMessage("Ocorreu um erro")
+                    });
+
             }
         }).then((result) => {
             if (result.isConfirmed) {
